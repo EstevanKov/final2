@@ -1,21 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/middleware";
 
+
+const protectedRoutes = [
+  '/password',
+  '/notes',
+  '/products'
+];
+
 export async function middleware(request: NextRequest) {
   try {
-    // This `try/catch` block is only here for the interactive tutorial.
-    // Feel free to remove once you have Supabase connected.
     const { supabase, response } = createClient(request);
 
-    // Refresh session if expired - required for Server Components
-    // https://supabase.com/docs/guides/auth/auth-helpers/nextjs#managing-session-with-middleware
-    await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    // Verificar si la ruta solicitada comienza con alguna de las rutas protegidas
+    const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+    // Redireccionar al usuario a la página de inicio de sesión si intenta acceder a una ruta protegida sin sesión activa
+    if (isProtectedRoute && !session) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
 
     return response;
-  } catch (e) {
-    // If you are here, a Supabase client could not be created!
-    // This is likely because you have not set up environment variables.
-    // Check out http://localhost:3000 for Next Steps.
+  } catch (error) {
     return NextResponse.next({
       request: {
         headers: request.headers,
@@ -26,13 +34,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
+    // Coincide con todas las solicitudes excepto los archivos estáticos y el favicon
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };
