@@ -21,8 +21,13 @@ export default function Login({
       password,
     });
 
-    if (error) {
-      return redirect("/login?message=Could not authenticate user");
+    if (error !== null) {
+      console.error(new Date());
+      console.error("Ocurrió un error inesperado...");
+      console.error("FOLIO: xxx");
+      console.error("mensaje = \"BAD SESSION\";");
+      console.error("Error al autenticar usuario:", error.message);
+      return redirect("/login?message=Error al autenticar usuario");
     }
 
     return redirect("/");
@@ -45,7 +50,8 @@ export default function Login({
       },
     });
 
-    if (error) {
+    if (error !== null) {
+      console.error("Error al registrar usuario:", error.message);
       return redirect("/login?message=Could not authenticate user");
     }
 
@@ -98,6 +104,8 @@ export default function Login({
           placeholder="••••••••"
           required
         />
+        
+       <center> <p>click aquí para recuperar tu sesión <u><a href="http://localhost:3000/login/link">Página de recuperación</a></u></p></center>
         <button className="bg-green-700 rounded-md px-4 py-2 text-foreground mb-2">
           Sign In
         </button>
